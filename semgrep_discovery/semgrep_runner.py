@@ -91,22 +91,18 @@ class SemgrepRunner:
                 line = finding.get('extra').get('metavars').get('$OBJECT').get('start').get('line')
 
                 if path not in objects_dict:
-                    self.logger.info(path)
                     objects_dict[path] = {}
 
                 if object not in objects_dict[path]:
-                    self.logger.info('   ' + object)
                     objects_dict[path][object] = { 'object_type': object_type,
                                                    'line': line,
                                                    'sensitive': False,
                                                    'fields': []}
                     
                 if field and field not in objects_dict[path][object]['fields']:
-                    self.logger.info('        ' + field)
                     objects_dict[path][object]['fields'].append(field)
 
                 if method and method not in objects_dict[path][object]['fields']:
-                    self.logger.info('        ' + field)
                     objects_dict[path][object]['fields'].append(method)
 
                 for kw in self.keywords:
@@ -125,6 +121,27 @@ class SemgrepRunner:
                             sensitive=object_data['sensitive'],
                         )
                     )
+        
+        objects_by_types = {}
+
+        for obj in objects:
+
+            if obj.object_type not in objects_by_types:
+                objects_by_types[obj.object_type] = []
+
+            objects_by_types[obj.object_type].append(obj)
+        
+        for obj_type, obj_type_array in objects_by_types.items():
+            
+            self.logger.info(f"    [ { obj_type } ]")
+
+            for obj in obj_type_array:
+
+                self.logger.info(f"        { obj.object }")
+                self.logger.info(f"            fields:    { str(obj.fields) }")
+                self.logger.info(f"            path:      { obj.path }:{ obj.line }")
+                if obj.sensitive:
+                    self.logger.info(f"            sensitive!!!")
 
         self.logger.info(f"Got {len(objects)} objects")
 

@@ -10,7 +10,7 @@ def main():
     config = config_from_args()
 
     logging.basicConfig(
-        format='%(asctime)s | %(levelname)s | %(pathname)s:%(lineno)d | %(message)s',
+        format='%(message)s',
         level=logging.getLevelName("INFO"),
     )
 
@@ -24,7 +24,7 @@ def main():
     result_objects = semgrep_runner.find_objects()
 
     if config.outfile:
-        res_writer = ResultWriter(outfile=config.outfile, format=config.outfile)
+        res_writer = ResultWriter(outfile=config.outfile, format=config.format)
         res_writer.write_results_to_file(result_objects)
 
 if __name__ == "__main__":

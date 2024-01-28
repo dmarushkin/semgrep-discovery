@@ -35,12 +35,8 @@ def config_from_args(args: Optional[Sequence[str]] = None) -> ConfigModel:
         langs=args.langs.split(','),
         objects=args.objects.split(','),
         keywords=args.keywords.split(','),
+        outfile=args.outfile,
+        format=args.format,
     )
-
-    if args.outfile:
-        config_obj.outfile = args.outfile
-
-    if args.format:
-        config_obj.format=args.format
 
     return config_obj
