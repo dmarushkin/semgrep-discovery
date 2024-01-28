@@ -8,7 +8,7 @@ import os
 import subprocess
 import json
 
-# Датакласс каждой получаемой из апи строки
+
 @dataclass
 class SearchObject:
     path: str
@@ -17,18 +17,16 @@ class SearchObject:
     object: str
     fields: List[str]
     sensitive: bool
-    
 
 
-# Класс чтения данных из апи
 class SemgrepRunner:
 
-    def __init__(self, workdir: str, langs: str, objects: str, keywords: str):
+    def __init__(self, workdir: str, langs: List[str], objects: List[str], keywords: List[str]):
         self.workdir = Path(workdir)
         self.workdir_len = len(str(self.workdir))
-        self.keywords = keywords.split(',')
-        self.langs = langs.split(',')
-        self.objects = objects.split(',')
+        self.keywords = keywords
+        self.langs = langs
+        self.objects = objects
 
         self.rulesdir = Path(os.path.dirname(__file__), '/rules')
 
