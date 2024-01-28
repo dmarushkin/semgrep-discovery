@@ -1,0 +1,45 @@
+rules:
+  - id: java-dao-data-object
+    languages:
+      - java
+    severity: INFO
+    message:  $OBJECT $FIELD
+    patterns:
+      - pattern-inside: |
+          class $OBJECT extends JdbcDaoSupport3 {
+          ...
+          }
+      - pattern: |
+          Column.cons("$FIELD");
+  - id: java-persist-data-object
+    languages:
+      - java
+    severity: INFO
+    message:  $OBJ $DB_NAME $FIELD $DB_FIELD $TYPE
+    patterns:
+      - pattern-either:
+        - pattern-inside: |
+            import javax.persistence.*;
+            ...
+            @Table(..., name = $DB_NAME, ...)
+            class $OBJ extends $BASEOBJ {
+            ...
+            }
+        - pattern-inside: |
+            @javax.persistence.Table(..., name = $DB_NAME, ...)
+            class $OBJ extends $BASEOBJ {
+            ...
+            }
+      - pattern-either:
+        - pattern: |
+            @Column(..., name = $DB_FIELD, ...)
+            private $TYPE $FIELD;
+        - pattern: |
+            @Column(..., name = $DB_FIELD, ...)
+            public $TYPE $FIELD;
+        - pattern: |
+            @Column(..., name = $DB_FIELD, ...)
+            public $TYPE $FIELD()
+        - pattern: |
+            @JoinColumn(..., name = $DB_FIELD, ...)
+            public $TYPE $FIELD()
