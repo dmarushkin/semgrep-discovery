@@ -22,18 +22,26 @@ class SearchObject:
 class SemgrepRunner:
 
     def __init__(self, workdir: str, langs: List[str], objects: List[str], keywords: List[str]):
-        self.workdir = Path(workdir)
+
+        self.workdir = Path(workdir).resolve()
         self.workdir_len = len(str(self.workdir))
         self.keywords = keywords
         self.langs = langs
         self.objects = objects
 
-        self.rulesdir = Path(os.path.dirname(__file__), '/rules')
+        self.rulesdir = os.path.abspath(os.path.dirname(__file__)) + '/rules'
 
         self.logger = logging.getLogger(__name__)
         
 
     def find_objects(self) -> List[SearchObject]:
+
+        self.logger.info(f'Starting scan....')
+        self.logger.info(f'     workdir: {str(self.workdir)}')
+        self.logger.info(f'     langs: {str(self.langs)}')
+        self.logger.info(f'     objects: {str(self.objects)}')
+        self.logger.info(f'     keywords: {str(self.keywords)}')
+        self.logger.info(f'     ruledir: {str(self.rulesdir)}')
 
         objects = []
 
@@ -55,7 +63,7 @@ class SemgrepRunner:
             self.logger.info(f'Run scan {self.workdir} with rule {rule}')
 
             result = subprocess.run(
-                ["semgrep", "scan", "--config"] + rule +  [ self.workdir, "--json", "--metrics=off"],
+                ["semgrep", "scan", "--config", rule, self.workdir, "--json", "--metrics=off"],
                 capture_output=True,
                 text=True
             )
