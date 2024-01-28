@@ -40,14 +40,15 @@ class SemgrepRunner:
         rules_list = []
 
         for lang in self.langs:
-            for object in self.objects:
+            for obj in self.objects:
 
-                if Path(self.rulesdir, lang, object + '.yaml').is_file():
+                rule_file = Path(self.rulesdir, lang, obj + '.yaml')
 
-                    rule_file = str(Path(self.rulesdir, lang, object + '.yaml'))
-                    rules_list.append(rule_file)
-                    
-                    self.logger.info(f'Add rule {rule_file} for scan')
+                if rule_file.is_file():
+                    rules_list.append(str(rule_file))
+                    self.logger.info(f'Add rule {str(rule_file)} for scan')
+                else:
+                    self.logger.info(f'No rule file for {str(rule_file)}')
 
         for rule in rules_list:
 
