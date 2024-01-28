@@ -1,14 +1,23 @@
 [tool.poetry]
 name = "semgrep-discovery"
 version = "0.1.0"
+license = "MIT"
 description = "Discovery of sensitive security objects in project code"
 authors = ["Dmitry Marushkin <dmarushkin@gmail.com>"]
 readme = "README.md"
+keywords = ["security", "assets", "discovery", "scanning", "appsec"]
+packages = [{include = "semgrep-discovery"}]
+
+
+[tool.poetry.scripts]
+semgrep-discovery = "semgrep_discovery.main:main"
+
 
 [tool.poetry.dependencies]
 python = "^3.11"
 argparse = "^1.4.0"
 semgrep = "^1.58.0"
+pydantic = "^2.5.3"
 
 
 [build-system]
