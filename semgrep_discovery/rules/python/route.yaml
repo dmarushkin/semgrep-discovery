@@ -31,8 +31,16 @@ rules:
     message: django route `Object $OBJECT, func $FIELD, type $TYPE`
     languages: [python]
     severity: INFO
-    pattern: |
-      $URLPATTERNS = [..., django.urls.path($OBJECT, $FIELD, ...), ...]
+    patterns:
+      - pattern-either:
+        - pattern: |
+            $URLPATTERNS = [..., django.urls.path($OBJECT, $FIELD, ...), ...]
+        - pattern: |
+            $URLPATTERNS = [..., django.conf.urls.path($OBJECT, $FIELD, ...), ...]
+        - pattern: |
+            $URLPATTERNS = [..., django.urls.url($OBJECT, $FIELD, ...), ...]
+        - pattern: |
+            $URLPATTERNS = [..., django.conf.urls.url($OBJECT, $FIELD, ...), ...]
   - id: bottle-route-object
     message: bottle route `Object $OBJECT, func $FIELD, type $TYPE`
     languages: [python]

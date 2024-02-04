@@ -11,14 +11,14 @@ pip3 install semgrep-discovery
 # Run
 
 ```
-semgrep-discovery --wd ./django-realworld-example-app/ --langs python --objects dtos --keywords email,password --outfile ./result.json --format json
+semgrep-discovery --wd ./django-realworld-example-app/ --langs python --objects dto --keywords email,password --outfile ./result.json --format json
 Starting scan....
      workdir: /home/kali/django-realworld-example-app
      langs: ['python']
      objects: ['dtos']
      keywords: ['email', 'password']
      ruledir: /home/kali/.local/lib/python3.11/site-packages/semgrep_discovery/rules
-Add rule /home/kali/.local/lib/python3.11/site-packages/semgrep_discovery/rules/python/dtos.yaml for scan
+Add rule /home/kali/.local/lib/python3.11/site-packages/semgrep_discovery/rules/python/dto.yaml for scan
 Run scan /home/kali/django-realworld-example-app with rule /home/kali/.local/lib/python3.11/site-packages/semgrep_discovery/rules/python/dtos.yaml
     [ lib.python3.11.site-packages.semgrep_discovery.rules.python.django-data-object ]
         Article
