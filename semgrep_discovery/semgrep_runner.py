@@ -47,8 +47,8 @@ class SemgrepRunner:
 
         objects = []
 
-        rules_list = []
-
+        objects_dict = {}
+        
         for lang in self.langs:
 
             for object_type in self.objects:
@@ -72,8 +72,6 @@ class SemgrepRunner:
 
                     semgrep_data = json.loads(result.stdout)
 
-                    objects_dict = {}
-
                     for finding in semgrep_data['results']:
                         
                         full_path = finding.get('path')
@@ -86,52 +84,42 @@ class SemgrepRunner:
                         field = finding.get('extra').get('metavars').get('$FIELD', {}).get('abstract_content',"")
                         line = finding.get('extra').get('metavars').get('$OBJECT').get('start').get('line')
 
-                        if path not in objects_dict:
-                            objects_dict[path] = {}
+                        uniq_obj_key = f"{path}.{object}"
 
-                        if object not in objects_dict[path]:
-                            objects_dict[path][object] = {  'lang': lang,
-                                                            'object_type': object_type,
-                                                            'rule_id': rule_id,
-                                                            'line': line,
-                                                            'sensitive': False,
-                                                            'fields': []}
+                        if uniq_obj_key not in objects_dict:
+                            objects_dict[uniq_obj_key] = SearchObject(
+                                path=path,
+                                line=line,
+                                lang=lang,
+                                object_type=object_type,
+                                rule_id=rule_id,
+                                object=object,
+                                fields=[],
+                                sensitive=False,
+                            )
                             
-                        if field and field not in objects_dict[path][object]['fields']:
-                            objects_dict[path][object]['fields'].append(field)
-
+                        if field and field not in objects_dict[uniq_obj_key].fields:
+                            objects_dict[uniq_obj_key].fields.append(field)
 
                         for kw in self.keywords:
                             if kw in str(object).lower() or kw in str(field).lower():
-                                objects_dict[path][object]['sensitive'] = True
-
-                    for path_key, path_dict in objects_dict.items():
-                        for object_key, object_data in path_dict.items():
-                            objects.append(
-                                SearchObject(
-                                    path=path_key,
-                                    line=object_data['line'],
-                                    lang=object_data['lang'],
-                                    object_type=object_data['object_type'],
-                                    rule_id=object_data['rule_id'],
-                                    object=object_key,
-                                    fields=object_data['fields'],
-                                    sensitive=object_data['sensitive'],
-                                )
-                            )
+                                objects_dict[uniq_obj_key].sensitive = True
         
-        objects_by_types = {}
+        objects_type_dict = {}
 
-        for obj in objects:
+        for obj in objects_dict.values():
 
             obj_type_key = f"{obj.lang}.{obj.object_type}.{obj.rule_id}"
 
-            if obj_type_key not in objects_by_types:
-                objects_by_types[obj_type_key] = []
+            if obj_type_key not in objects_type_dict:
+                objects_type_dict[obj_type_key] = []
 
-            objects_by_types[obj_type_key].append(obj)
+            objects_type_dict[obj_type_key].append(obj)
+
+            objects.append(obj)
+
         
-        for obj_type, obj_type_array in objects_by_types.items():
+        for obj_type, obj_type_array in objects_type_dict.items():
             
             self.logger.info(f"    [ { obj_type } ]")
 
