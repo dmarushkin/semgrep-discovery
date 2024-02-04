@@ -13,7 +13,9 @@ import json
 class SearchObject:
     path: str
     line: int
+    lang: str
     object_type: str
+    rule_id: str
     object: str
     fields: List[str]
     sensitive: bool
@@ -48,88 +50,86 @@ class SemgrepRunner:
         rules_list = []
 
         for lang in self.langs:
-            for obj in self.objects:
 
-                rule_file = Path(self.rulesdir, lang, obj + '.yaml')
+            for object_type in self.objects:
+
+                rule_file = Path(self.rulesdir, lang, object_type + '.yaml')
 
                 if rule_file.is_file():
-                    rules_list.append(str(rule_file))
-                    self.logger.info(f'Add rule {str(rule_file)} for scan')
-                else:
-                    self.logger.info(f'No rule file for {str(rule_file)}')
 
-        for rule in rules_list:
+                    self.logger.info(f'Run scan {self.workdir} with rule {rule_file}')
 
-            self.logger.info(f'Run scan {self.workdir} with rule {rule}')
-
-            result = subprocess.run(
-                ["semgrep", "scan", "--config", rule, self.workdir, "--json", "--metrics=off"],
-                capture_output=True,
-                text=True
-            )
-
-            if result.returncode != 0:
-                self.logger.error("Semgrep encountered an error:")
-                self.logger.error(result.stderr)
-                return objects
-
-            semgrep_data = json.loads(result.stdout)
-
-            objects_dict = {}
-
-            for finding in semgrep_data['results']:
-                
-                full_path = finding.get('path')
-                path = full_path[self.workdir_len + 1:]
-
-                full_rule = finding.get('check_id')
-                object_type = full_rule[6:]
-
-                object = finding.get('extra').get('metavars').get('$OBJECT').get('abstract_content')
-                field = finding.get('extra').get('metavars').get('$FIELD', {}).get('abstract_content')
-                method = finding.get('extra').get('metavars').get('$METHOD', {}).get('abstract_content')
-                line = finding.get('extra').get('metavars').get('$OBJECT').get('start').get('line')
-
-                if path not in objects_dict:
-                    objects_dict[path] = {}
-
-                if object not in objects_dict[path]:
-                    objects_dict[path][object] = { 'object_type': object_type,
-                                                   'line': line,
-                                                   'sensitive': False,
-                                                   'fields': []}
-                    
-                if field and field not in objects_dict[path][object]['fields']:
-                    objects_dict[path][object]['fields'].append(field)
-
-                if method and method not in objects_dict[path][object]['fields']:
-                    objects_dict[path][object]['fields'].append(method)
-
-                for kw in self.keywords:
-                    if kw in str(object).lower() or kw in str(field).lower():
-                        objects_dict[path][object]['sensitive'] = True
-
-            for path_key, path_dict in objects_dict.items():
-                for object_key, object_data in path_dict.items():
-                    objects.append(
-                        SearchObject(
-                            path=path_key,
-                            line=object_data['line'],
-                            object_type=object_data['object_type'],
-                            object=object_key,
-                            fields=object_data['fields'],
-                            sensitive=object_data['sensitive'],
-                        )
+                    result = subprocess.run(
+                        ["semgrep", "scan", "--config", rule_file, self.workdir, "--json", "--metrics=off"],
+                        capture_output=True,
+                        text=True
                     )
+
+                    if result.returncode != 0:
+                        self.logger.error("Semgrep encountered an error:")
+                        self.logger.error(result.stderr)
+                        return objects
+
+                    semgrep_data = json.loads(result.stdout)
+
+                    objects_dict = {}
+
+                    for finding in semgrep_data['results']:
+                        
+                        full_path = finding.get('path')
+
+                        path = full_path[self.workdir_len + 1:]
+
+                        rule_id = finding.get('check_id',"").split('.')[-1]
+
+                        object = finding.get('extra').get('metavars').get('$OBJECT', {}).get('abstract_content',"")
+                        field = finding.get('extra').get('metavars').get('$FIELD', {}).get('abstract_content',"")
+                        line = finding.get('extra').get('metavars').get('$OBJECT').get('start').get('line')
+
+                        if path not in objects_dict:
+                            objects_dict[path] = {}
+
+                        if object not in objects_dict[path]:
+                            objects_dict[path][object] = {  'lang': lang,
+                                                            'object_type': object_type,
+                                                            'rule_id': rule_id,
+                                                            'line': line,
+                                                            'sensitive': False,
+                                                            'fields': []}
+                            
+                        if field and field not in objects_dict[path][object]['fields']:
+                            objects_dict[path][object]['fields'].append(field)
+
+
+                        for kw in self.keywords:
+                            if kw in str(object).lower() or kw in str(field).lower():
+                                objects_dict[path][object]['sensitive'] = True
+
+                    for path_key, path_dict in objects_dict.items():
+                        for object_key, object_data in path_dict.items():
+                            objects.append(
+                                SearchObject(
+                                    path=path_key,
+                                    line=object_data['line'],
+                                    lang=object_data['lang'],
+                                    object_type=object_data['object_type'],
+                                    rule_id=object_data['rule_id'],
+                                    object=object_key,
+                                    fields=object_data['fields'],
+                                    sensitive=object_data['sensitive'],
+                                )
+                            )
         
         objects_by_types = {}
 
         for obj in objects:
 
-            if obj.object_type not in objects_by_types:
-                objects_by_types[obj.object_type] = []
+            obj_type_key = f"{obj.lang}.{obj.object_type}.{obj.rule_id}"
 
-            objects_by_types[obj.object_type].append(obj)
+            if obj_type_key not in objects_by_types:
+                objects_by_types[obj_type_key] = []
+
+            objects_by_types[obj_type_key].append(obj)
         
         for obj_type, obj_type_array in objects_by_types.items():
             
