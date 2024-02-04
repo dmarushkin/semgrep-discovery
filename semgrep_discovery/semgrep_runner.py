@@ -56,9 +56,9 @@ class SemgrepRunner:
 
                 rule_file = Path(self.rulesdir, lang, object_type + '.yaml')
 
-                rule_file_short = rule_file[self.rulesdir_len + 1:]
-
                 if rule_file.is_file():
+
+                    rule_file_short = str(rule_file)[self.rulesdir_len + 1:]
 
                     self.logger.info(f'Run scan {self.workdir} with rule {rule_file_short}')
 
