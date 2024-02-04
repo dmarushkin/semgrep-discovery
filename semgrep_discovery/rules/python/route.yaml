@@ -1,0 +1,69 @@
+rules:
+  - id: fastapi-route-object
+    message: fastapi route `Object $OBJECT, func $FIELD, type $TYPE`
+    languages: [python]
+    severity: INFO
+    pattern: |
+      $APP = fastapi.FastAPI(...)
+      ...
+      @$APP.$TYPE('$OBJECT')
+      def $FIELD(...):
+        ...
+  - id: flask-route-object
+    message: flask route `Object $OBJECT, func $FIELD, type $TYPE`
+    languages: [python]
+    severity: INFO
+    patterns:
+    - pattern-either:
+      - pattern: |
+          $APP = flask.Flask(...)
+          ...
+          @$APP.route('$OBJECT',methods=[...,'$TYPE',...])
+          def $FIELD(...):
+            ...
+      - pattern: |
+          $APP = flask.Flask(...)
+          ...
+          @$APP.route('$OBJECT')
+          def $FIELD(...):
+            ...
+  - id: django-route-object
+    message: django route `Object $OBJECT, func $FIELD, type $TYPE`
+    languages: [python]
+    severity: INFO
+    pattern: |
+      $URLPATTERNS = [..., django.urls.path($OBJECT, $FIELD, ...), ...]
+  - id: bottle-route-object
+    message: bottle route `Object $OBJECT, func $FIELD, type $TYPE`
+    languages: [python]
+    severity: INFO
+    patterns:
+    - pattern-either:
+      - pattern: |
+          $APP = bottle.Bottle(...)
+          ...
+          @$APP.route('$OBJECT',method=[...,'$TYPE',...])
+          def $FIELD(...):
+            ...
+      - pattern: |
+          $APP = bottle.Bottle(...)
+          ...
+          @$APP.route('$OBJECT')
+          def $FIELD(...):
+            ...
+      - pattern: |
+          @bottle.$TYPE('$OBJECT')
+          def $FIELD(...):
+            ...
+  - id: starlette-route-object
+    message: starlette route `Object $OBJECT, func $FIELD, type $TYPE`
+    languages: [python]
+    severity: INFO
+    patterns:
+    - pattern-either:
+      - pattern: |
+          $ROUTES = [..., starlette.routing.Route($OBJECT, $FIELD, ...), ...]
+          ...
+          $APP = starlette.applications.Starlette(...,routes=$ROUTES,...)
+      - pattern: |
+          $APP = starlette.applications.Starlette(...,routes=[..., starlette.routing.Route($OBJECT, $FIELD, ...), ...],...)
