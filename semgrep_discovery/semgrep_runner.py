@@ -32,6 +32,7 @@ class SemgrepRunner:
         self.objects = objects
 
         self.rulesdir = os.path.abspath(os.path.dirname(__file__)) + '/rules'
+        self.rulesdir_len = len(str(self.rulesdir))
 
         self.logger = logging.getLogger(__name__)
         
@@ -55,9 +56,11 @@ class SemgrepRunner:
 
                 rule_file = Path(self.rulesdir, lang, object_type + '.yaml')
 
+                rule_file_short = rule_file[self.rulesdir_len + 1:]
+
                 if rule_file.is_file():
 
-                    self.logger.info(f'Run scan {self.workdir} with rule {rule_file}')
+                    self.logger.info(f'Run scan {self.workdir} with rule {rule_file_short}')
 
                     result = subprocess.run(
                         ["semgrep", "scan", "--config", rule_file, self.workdir, "--json", "--metrics=off"],

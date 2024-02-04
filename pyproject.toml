@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "semgrep-discovery"
-version = "0.4.3"
+version = "0.4.4"
 license = "MIT"
 description = "Discovery of sensitive security objects in project code"
 authors = ["Dmitry Marushkin <dmarushkin@gmail.com>"]
